@@ -77,7 +77,7 @@ export default function SmartFarmDashboard() {
 
             const data: DiseaseAnalysis = await response.json();
             setAnalysis(data);
-            setActiveTab('scan');
+            // Don't set activeTab here since it's already set in handleImageUpload
         } catch (error) {
             console.error('Error analyzing image:', error);
 
@@ -660,7 +660,7 @@ interface VoiceAdvisorViewProps {
     isSending: boolean;
     onSendMessage: () => void;
     onToggleRecording: () => void;
-    chatEndRef: React.RefObject<HTMLDivElement>;
+    chatEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function VoiceAdvisorView({ chatMessages, inputText, setInputText, isRecording, isSending, onSendMessage, onToggleRecording, chatEndRef }: VoiceAdvisorViewProps) {
