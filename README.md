@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://smartfarm-advisor-main-frontend.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://smartfarm-advisor-main.vercel.app/)
 
 SmartFarm Advisor is a production-ready agricultural assistance platform that leverages Google's Gemini AI and Genkit to provide real-time crop disease detection, conversational agricultural expertise, and weather-based recommendations to farmers across Africa.
 
@@ -30,7 +30,7 @@ SmartFarm Advisor is a production-ready agricultural assistance platform that le
 
 ### Try It Now!
 
-**Demo URL:** [https://smartfarm-advisor-main-frontend.vercel.app](https://smartfarm-advisor-main-frontend.vercel.app)
+**Demo URL:** [https://smartfarm-advisor-main.vercel.app/](https://smartfarm-advisor-main.vercel.app/)
 
 ### Sample Test Cases
 
@@ -827,7 +827,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact & Support
 
-- **Website**: https://smartfarm-advisor-main-frontend.vercel.app/health
+- **Website**: https://amoskorir.vercel.app
 - **Email**: amoskorir631@gmail.com
 
 ### Support Channels
@@ -891,6 +891,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for African farmers**
 
-[Website](https://amoskorir.vercel.app) • [Documentation](https://docs.smartfarmdocs.github.io) • [Demo](https://smartfarm-advisor-main-frontend.vercel.app)
+[Website](https://amoskorir.vercel.app) • [Documentation](https://docs.smartfarmdocs.github.io) • [Demo](https://smartfarm-advisor-main.vercel.app/)
 
 </div>

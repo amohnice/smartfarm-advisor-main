@@ -7,8 +7,6 @@ import { googleAI } from '@genkit-ai/googleai';
 import { defineFlow, runFlow } from '@genkit-ai/flow';
 import * as z from 'zod';
 
-console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '***' : 'Not set');
-
 // Initialize Genkit with GoogleAI
 if (!process.env.GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY environment variable is not set');
@@ -74,6 +72,7 @@ const diseaseDetectionFlow = defineFlow(
         }),
     },
     async (input) => {
+        // Logging removed for production
         const analysisResult = await ai.generate({
             model: googleAI.model('gemini-2.5-flash'),
             prompt: [
@@ -104,7 +103,6 @@ Keep symptoms list to 3 items max.`,
         });
 
         const analysisText = typeof analysisResult.text === 'function' ? analysisResult.text() : analysisResult.text;
-        console.log('Vision analysis response:', analysisText);
         const diseaseInfo = parseJSON(analysisText);
 
         const treatmentResult = await ai.generate({
@@ -133,12 +131,9 @@ Keep symptoms list to 3 items max.`,
         });
 
         const treatmentText = typeof treatmentResult.text === 'function' ? treatmentResult.text() : treatmentResult.text;
-        console.log('Treatment response:', treatmentText || 'EMPTY RESPONSE');
-
         // Parse treatment or use fallback
         let treatment;
         if (!treatmentText || treatmentText.trim() === '') {
-            console.warn('Empty treatment response, using fallback');
             treatment = {
                 immediate: [
                     'Isolate affected plants to prevent spread',
@@ -162,28 +157,66 @@ Keep symptoms list to 3 items max.`,
             treatment = parseJSON(treatmentText);
         }
 
+        const targetLanguage = input.language || 'en';
+        const targetLanguageName = getLanguageName(targetLanguage);
+        
+        // Translation debug info removed
+
+        // Create the English text that would be translated
+        const englishText = `Disease: ${diseaseInfo.disease || 'Unknown disease'}
+Severity: ${diseaseInfo.severity || 'moderate'}
+
+Key Actions:
+${treatment.immediate ? treatment.immediate.slice(0, 3).join('\n') : 'No immediate actions available'}`;
+
+        // If the target language is English, skip translation
+        if (targetLanguage === 'en') {
+            // Skipping translation for English
+            return {
+                disease: diseaseInfo.disease || 'Unknown disease',
+                confidence: diseaseInfo.confidence || 0,
+                severity: diseaseInfo.severity || 'moderate',
+                treatment: {
+                    immediate: treatment.immediate || ['Consult agricultural extension officer'],
+                    preventive: treatment.preventive || ['Monitor crops regularly'],
+                    organic: treatment.organic || ['Use organic methods when possible'],
+                },
+                estimatedLoss: treatment.estimatedLoss || 'Cannot estimate',
+                localizedText: englishText,
+                language: targetLanguage // Include the language in the response for debugging
+            };
+        }
+        
+        // For non-English languages, perform translation
+        // Starting translation
+        
+        // Ensure we have a valid language code
+        const safeTargetLanguage = ['en', 'sw', 'ha', 'am', 'yo'].includes(targetLanguage) ? targetLanguage : 'en';
+        
+        const translationPrompt = `You are an expert agricultural translator. 
+Translate the following agricultural advice to ${targetLanguageName} (${safeTargetLanguage}).
+
+IMPORTANT: Your response should be ONLY the translated text, with no additional explanations or formatting.
+
+${englishText}
+
+Guidelines:
+- Use simple, farmer-friendly language
+- Use relevant agricultural terms in ${targetLanguageName}
+- Be clear and direct
+- Keep the translation natural and conversational`;
+
+        // Translation in progress
+        
         const translationResult = await ai.generate({
             model: googleAI.model('gemini-2.5-flash'),
-            prompt: `Translate the following agricultural advice to ${getLanguageName(input.language)}.
-      
-      Disease: ${diseaseInfo.disease}
-      Severity: ${diseaseInfo.severity}
-      
-      Key Actions:
-      ${treatment.immediate ? treatment.immediate.slice(0, 3).join('\n') : 'No immediate actions available'}
-      
-      Requirements:
-      - Use simple, farmer-friendly language
-      - Include relevant local agricultural terms
-      - Keep under 200 words for SMS compatibility
-      - Be direct and action-oriented
-      - Do not use markdown or formatting
-      
-      Translate naturally as if speaking to a farmer.`,
+            prompt: translationPrompt,
             config: {
                 temperature: 0.3,
             },
         });
+
+        const translatedText = typeof translationResult.text === 'function' ? translationResult.text() : translationResult.text;
 
         return {
             disease: diseaseInfo.disease || 'Unknown disease',
@@ -195,7 +228,7 @@ Keep symptoms list to 3 items max.`,
                 organic: treatment.organic || ['Use organic methods when possible'],
             },
             estimatedLoss: treatment.estimatedLoss || 'Cannot estimate',
-            localizedText: typeof translationResult.text === 'function' ? translationResult.text() : translationResult.text,
+            localizedText: translatedText,
         };
     }
 );
@@ -242,7 +275,7 @@ Farmer asks: ${input.message}
 
 Provide practical farming advice in 2-3 short sentences. Be direct and actionable.`;
 
-            console.log('Chat prompt length:', fullPrompt.length, 'characters');
+            // Generating response
 
             // Use a simpler generation call
             const response = await ai.generate({
@@ -256,18 +289,14 @@ Provide practical farming advice in 2-3 short sentences. Be direct and actionabl
                 },
             });
 
-            console.log('Response received:', {
-                hasText: !!response.text,
-                finishReason: response.finishReason,
-                usage: response.usage
-            });
+            // Response received
 
             // Extract the response text - it's a property, not a function
             let responseText = typeof response.text === 'function' ? response.text() : response.text;
 
             // Handle empty responses
             if (!responseText || responseText.trim() === '') {
-                console.error('Empty response received. Finish reason:', response.finishReason);
+                console.error('Empty response received from model');
 
                 if (response.finishReason === 'MAX_TOKENS' || response.finishReason === 'length') {
                     responseText = 'Your question requires a detailed answer. Could you make it more specific? For example, ask about a particular crop or farming activity.';
@@ -287,7 +316,7 @@ Provide practical farming advice in 2-3 short sentences. Be direct and actionabl
             };
 
         } catch (error) {
-            console.error('Error in agricultural chat flow:', error);
+            console.error('Error in chat flow:', error.message);
 
             // Return a helpful error message
             return {
@@ -415,22 +444,18 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/api/analyze-disease', upload.single('image'), async (req, res) => {
-    console.log('📸 Disease detection request received');
+    // Disease detection request received
 
     try {
         if (!req.file) {
-            console.error('❌ No image file in request');
+            console.error('No image file in request');
             return res.status(400).json({ error: 'No image provided' });
         }
-
-        console.log('✅ Image received:', req.file.size, 'bytes');
 
         const imageBase64 = req.file.buffer.toString('base64');
         const cropType = req.body.cropType;
         const language = req.body.language || 'en';
         const location = req.body.location ? JSON.parse(req.body.location) : undefined;
-
-        console.log('🔍 Analyzing image with Genkit flow...');
 
         // Run the actual disease detection flow
         const result = await runFlow(diseaseDetectionFlow, {
@@ -440,10 +465,10 @@ app.post('/api/analyze-disease', upload.single('image'), async (req, res) => {
             location,
         });
 
-        console.log('✅ Analysis complete');
+        // Analysis complete
         res.json(result);
     } catch (error: any) {
-        console.error('❌ Error analyzing disease:', error);
+        console.error('Error analyzing disease:', error.message);
         res.status(500).json({
             error: 'Failed to analyze image',
             details: error.message
@@ -453,7 +478,7 @@ app.post('/api/analyze-disease', upload.single('image'), async (req, res) => {
 
 // FIXED: Chat endpoint
 app.post('/api/chat', async (req, res) => {
-    console.log('💬 Chat request received');
+    // Chat request received
 
     try {
         const { message, history, farmerProfile, language } = req.body;
@@ -462,7 +487,7 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'No message provided' });
         }
 
-        console.log('Processing message:', message);
+        // Processing chat message
 
         // Run the chat flow
         const result = await runFlow(agriculturalChatFlow, {
@@ -472,10 +497,10 @@ app.post('/api/chat', async (req, res) => {
             language: language || 'en',
         });
 
-        console.log('✅ Chat response generated');
+        // Chat response generated
         res.json(result);
     } catch (error: any) {
-        console.error('❌ Error in chat:', error);
+        console.error('Error in chat:', error.message);
         res.status(500).json({
             error: 'Failed to process message',
             details: error.message
@@ -499,30 +524,9 @@ app.post('/api/weather-advisory', async (req, res) => {
 
         res.json(result);
     } catch (error: any) {
-        console.error('Error in weather advisory:', error);
+        console.error('Weather advisory error:', error.message);
         res.status(500).json({
             error: 'Failed to get weather advisory',
-            details: error.message
-        });
-    }
-});
-
-app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No audio provided' });
-        }
-
-        const language = req.body.language || 'en';
-
-        res.json({
-            text: 'Transcribed text will appear here',
-            language,
-        });
-    } catch (error: any) {
-        console.error('Error transcribing audio:', error);
-        res.status(500).json({
-            error: 'Failed to transcribe audio',
             details: error.message
         });
     }

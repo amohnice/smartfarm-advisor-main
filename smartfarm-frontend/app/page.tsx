@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Camera, Mic, Cloud, TrendingUp, Leaf, Send, Volume2, AlertCircle, CheckCircle, Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 
@@ -29,8 +29,17 @@ interface AnalysisError {
     isRetryable: boolean;
 }
 
-// Define color types
+// Define color & language types
 type ColorType = 'green' | 'blue' | 'purple' | 'yellow';
+type LanguageCode = 'en' | 'sw' | 'ha' | 'am' | 'yo';
+
+const languageNames: Record<LanguageCode, string> = {
+    en: 'English',
+    sw: 'Swahili',
+    ha: 'Hausa',
+    am: 'Amharic',
+    yo: 'Yoruba',
+};
 
 export default function SmartFarmDashboard() {
     const [activeTab, setActiveTab] = useState<'home' | 'scan' | 'voice' | 'weather' | 'market'>('home');
@@ -42,6 +51,20 @@ export default function SmartFarmDashboard() {
     const [inputText, setInputText] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [language, setLanguage] = useState<LanguageCode>('en');
+    const languageRef = useRef(language);
+    
+    // Keep the ref in sync with state
+    useEffect(() => {
+        languageRef.current = language;
+    }, [language]);
+
+    // Handle language change
+    const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLang = e.target.value as LanguageCode;
+        setLanguage(newLang);
+    };
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -51,13 +74,22 @@ export default function SmartFarmDashboard() {
         setAnalysisError(null);
 
         try {
+            const currentLanguage = languageRef.current;
+            
+            // Create form data and append all fields
             const formData = new FormData();
             formData.append('image', file);
-
-            const response = await fetch('/api/analyze-disease', {
+            formData.append('language', currentLanguage);
+            formData.append('cropType', 'general');
+            
+            // Send the request
+            const response = await fetch('http://localhost:3001/api/analyze-disease', {
                 method: 'POST',
                 body: formData,
+                // Don't set Content-Type header - let the browser set it with the correct boundary
             });
+            
+            // Response received
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -79,7 +111,7 @@ export default function SmartFarmDashboard() {
             setAnalysis(data);
             // Don't set activeTab here since it's already set in handleImageUpload
         } catch (error) {
-            console.error('Error analyzing image:', error);
+            console.error('Error analyzing image');
 
             const errorMessage = error instanceof Error
                 ? error.message
@@ -152,7 +184,7 @@ export default function SmartFarmDashboard() {
             setChatMessages(prev => [...prev, assistantMessage]);
             chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
-            console.error('Error sending message:', error);
+            console.error('Failed to send message');
             alert('Failed to send message. Please try again.');
         } finally {
             setIsSending(false);
@@ -172,7 +204,7 @@ export default function SmartFarmDashboard() {
                     setInputText("When should I plant maize?");
                 }, 3000);
             } catch (error) {
-                console.error('Error accessing microphone:', error);
+                console.error('Microphone access error');
                 alert('Could not access microphone. Please check permissions.');
             }
         } else {
@@ -180,8 +212,27 @@ export default function SmartFarmDashboard() {
         }
     };
 
+    // Add language selector component
+    const LanguageSelector = () => (
+        <div className="fixed top-4 right-4 z-50">
+            <div className="flex items-center gap-3">
+                <select 
+                    value={language}
+                    onChange={handleLanguageChange}
+                    className="bg-white/20 backdrop-blur px-4 py-2 rounded-lg text-sm font-semibold border-0 text-black"
+                >
+                    <option value="en">🇬🇧 English</option>
+                    <option value="sw">🇰🇪 Swahili</option>
+                    <option value="ha">🇳🇬 Hausa</option>
+                    <option value="am">🇪🇹 Amharic</option>
+                    <option value="yo">🇳🇬 Yoruba</option>
+                </select>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+        <div className="min-h-screen bg-gray-50 relative">
             {/* Header */}
             <header className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg">
                 <div className="container mx-auto px-4 py-4">
@@ -192,6 +243,7 @@ export default function SmartFarmDashboard() {
                                 <h1 className="text-2xl font-bold">SmartFarm Advisor</h1>
                                 <p className="text-sm text-green-100">Your AI Farming Assistant</p>
                             </div>
+                            <LanguageSelector />
                         </div>
                     </div>
                 </div>
@@ -214,6 +266,7 @@ export default function SmartFarmDashboard() {
                         error={analysisError}
                         onRetry={() => fileInputRef.current?.click()}
                         onBack={() => setActiveTab('home')}
+                        language={language}
                     />
                 )}
 
@@ -474,9 +527,10 @@ interface DiseaseAnalysisViewProps {
     error?: AnalysisError | null;
     onRetry?: () => void;
     onBack?: () => void;
+    language: LanguageCode;
 }
 
-function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, error, onRetry, onBack }: DiseaseAnalysisViewProps) {
+function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, error, onRetry, onBack, language }: DiseaseAnalysisViewProps) {
     if (isAnalyzing) {
         return (
             <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -592,7 +646,7 @@ function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, error, onRe
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
                         <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                             <Volume2 className="w-5 h-5" />
-                            Translation (Swahili)
+                            Translation ({languageNames[language]})
                         </h4>
                         <p className="text-gray-700 leading-relaxed">{analysis.localizedText}</p>
                     </div>
@@ -781,3 +835,4 @@ function MarketView() {
         </div>
     );
 }
+
