@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary colors - Earthy green palette */
+    --color-primary: 72 121 77;       /* Forest Green */
+    --color-primary-light: 200 225 180; /* Light Sage */
+    --color-primary-dark: 46 91 77;    /* Darker Green */
+    --color-secondary: 242 201 147;    /* Warm Beige */
+    --color-accent: 219 84 97;         /* Coral accent */
+    
+    /* Text colors */
+    --color-text: 30 41 59;           /* Dark Slate */
+    --color-text-light: 100 116 139;   /* Slate Gray */
+    --color-text-lighter: 148 163 184; /* Light Slate */
+    
+    /* Background and surface */
+    --color-background: 252 251 247;   /* Off-white */
+    --color-surface: 255 255 255;      /* Pure White */
+    --color-surface-alt: 245 243 240;  /* Slightly darker for contrast */
+    
+    /* Border */
+    --color-border: 226 232 240;       /* Light Gray */
+    
+    /* Status colors */
+    --color-success: 72 187 120;       /* Green */
+    --color-warning: 247 144 9;        /* Orange */
+    --color-error: 225 29 72;          /* Red */
+    --color-info: 59 130 246;          /* Blue */
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+
+  * {
+    border-color: rgb(var(--color-border));
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-text));
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  /* Container */
+  .container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Card */
+  .card {
+    @apply rounded-xl bg-surface p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+    background-color: rgb(var(--color-surface));
+    border: 1px solid rgb(var(--color-border) / 0.5);
+  }
+  
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary/50;
+    background-color: rgb(var(--color-primary));
+  }
+  
+  .btn-secondary {
+    @apply bg-surface text-text hover:bg-surface-alt focus:ring-primary/50;
+    border: 1px solid rgb(var(--color-border));
+  }
+  
+  .btn-outline {
+    @apply border border-border bg-transparent hover:bg-surface-alt focus:ring-primary/50;
+  }
+  
+  /* Form elements */
+  .input {
+    @apply w-full rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-lighter/70 transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:ring-offset-1;
+  }
+  
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-text;
+  }
+  
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply bg-amber-100 text-amber-800;
+  }
+  
+  .badge-error {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  /* Animation */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-primary) / 0.3) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-primary/30 hover:bg-primary/40;
+  }
+}
+
+/* Base scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-gray-300 hover:bg-gray-400;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Typography */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Fallback font stack */
+@supports (font-variation-settings: normal) {
+  :root {
+    --font-sans: 'Inter var', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+body {
+    font-family: var(--font-sans), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: rgb(var(--color-text));
+  font-family: inherit;
+}
+
+h1 { 
+  @apply text-4xl sm:text-5xl md:text-6xl;
+  line-height: 1.1;
+}
+
+h2 { 
+  @apply text-3xl sm:text-4xl;
+  line-height: 1.15;
+}
+
+h3 { 
+  @apply text-2xl sm:text-3xl;
+  line-height: 1.2;
+}
+
+h4 { 
+  @apply text-xl sm:text-2xl;
+  line-height: 1.25;
+}
+
+p, li {
+  @apply text-base text-text-light leading-relaxed;
+  max-width: 65ch;
+}
+
+a {
+  @apply text-primary font-medium transition-colors duration-200 hover:text-primary-dark;
+  text-underline-offset: 3px;
+}
+
+.lead {
+  @apply text-lg sm:text-xl text-text-light font-normal;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+}
+
+/* Button styles are now in @layer components */
+
+/* Form styles are now in @layer components */
+
+/* Card styles are now in @layer components */
+
+/* Utility classes are now in @layer components */
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Responsive design utilities */
+@screen sm {
+  .container {
+    @apply px-6;
+  }
+}
+
+@screen lg {
+  .container {
+    @apply px-8;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.3;
+  }
+  
+  h1 { font-size: 24pt; }
+  h2 { font-size: 18pt; }
+  h3 { font-size: 14pt; }
+  
+  .break-after {
+    page-break-after: always;
+  }
+}

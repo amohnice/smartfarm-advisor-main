@@ -1,0 +1,180 @@
+const offlinePage = \`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFarm - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .features {
+            background: #f3f4f6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .features h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            color: #4b5563;
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="icon">🌾</div>
+    <h1>You're Offline</h1>
+    <p>Don't worry! SmartFarm still works without internet for many features.</p>
+
+    <div class="features">
+        <h3>Available Offline:</h3>
+        <ul>
+            <li>View previously scanned diseases</li>
+            <li>Access cached crop information</li>
+            <li>Review your farm history</li>
+            <li>Queue new scans for upload</li>
+        </ul>
+    </div>
+
+    <p>Your data will sync automatically when you're back online.</p>
+
+    <button onclick="location.reload()">Try Again</button>
+
+    <div id="status" class="status offline">
+        📡 Offline - Waiting for connection...
+    </div>
+</div>
+
+<script>
+    // Check online status
+    function updateStatus() {
+        const status = document.getElementById('status');
+        if (navigator.onLine) {
+            status.textContent = '✅ Back online! Reloading...';
+            status.className = 'status online';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            status.textContent = '📡 Offline - Waiting for connection...';
+            status.className = 'status offline';
+        }
+    }
+
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+
+    // Check every 5 seconds
+    setInterval(updateStatus, 5000);
+</script>
+</body>
+</html>
+\`;
+
+console.log('PWA configuration complete!');
+console.log('Remember to:');
+console.log('1. Generate app icons using a tool like https://realfavicongenerator.net/');
+console.log('2. Test offline functionality using Chrome DevTools');
+console.log('3. Test PWA installation on mobile devices');
+console.log('4. Configure push notification server if needed');
