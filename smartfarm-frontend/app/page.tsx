@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Mic, Cloud, TrendingUp, Leaf, Send, Volume2, AlertCircle, CheckCircle, Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
+import ReportGenerator from './components/ReportGenerator';
+import { saveReportToServer } from '@/lib/api';
 
 interface DiseaseAnalysis {
     disease: string;
@@ -53,7 +55,7 @@ export default function SmartFarmDashboard() {
     const [isSending, setIsSending] = useState(false);
     const [language, setLanguage] = useState<LanguageCode>('en');
     const languageRef = useRef(language);
-    
+
     // Keep the ref in sync with state
     useEffect(() => {
         languageRef.current = language;
@@ -263,6 +265,7 @@ export default function SmartFarmDashboard() {
                         selectedImage={selectedImage}
                         analysis={analysis}
                         isAnalyzing={isAnalyzing}
+                        userLocation={null}
                         error={analysisError}
                         onRetry={() => fileInputRef.current?.click()}
                         onBack={() => setActiveTab('home')}
@@ -519,18 +522,25 @@ function ActivityItem({ icon: Icon, title, description, time, color }: ActivityI
     );
 }
 
+// Types
+interface Location {
+    latitude: number;
+    longitude: number;
+}
+
 // Disease Analysis View Component
 interface DiseaseAnalysisViewProps {
     selectedImage: string | null;
     analysis: DiseaseAnalysis | null;
     isAnalyzing: boolean;
+    userLocation: Location | null;
     error?: AnalysisError | null;
     onRetry?: () => void;
     onBack?: () => void;
     language: LanguageCode;
 }
 
-function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, error, onRetry, onBack, language }: DiseaseAnalysisViewProps) {
+function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, userLocation, error, onRetry, onBack, language }: DiseaseAnalysisViewProps) {
     if (isAnalyzing) {
         return (
             <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -655,9 +665,34 @@ function DiseaseAnalysisView({ selectedImage, analysis, isAnalyzing, error, onRe
                         <button className="bg-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-green-700 transition-colors">
                             Find Agro-Dealers
                         </button>
-                        <button className="bg-white border-2 border-green-600 text-green-600 py-4 px-6 rounded-xl font-semibold hover:bg-green-50 transition-colors">
-                            Save Report
-                        </button>
+                        <ReportGenerator
+                            reportData={{
+                                analysis,
+                                timestamp: new Date().toISOString(),
+                                location: userLocation ? {
+                                    latitude: userLocation.latitude,
+                                    longitude: userLocation.longitude
+                                } : undefined,
+                                notes: 'Report generated from SmartFarm Advisor',
+                                language: languageNames[language]
+                            }}
+                            onSave={async () => {
+                                try {
+                                    await saveReportToServer({
+                                        analysis,
+                                        timestamp: new Date().toISOString(),
+                                        location: userLocation ? {
+                                            latitude: userLocation.latitude,
+                                            longitude: userLocation.longitude
+                                        } : undefined,
+                                        notes: 'Report generated from SmartFarm Advisor',
+                                        language: languageNames[language]
+                                    });
+                                } catch (error) {
+                                    console.error('Error saving report to server:', error);
+                                }
+                            }}
+                        />
                     </div>
                 </div>
             </div>

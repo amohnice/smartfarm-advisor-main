@@ -71,3 +71,42 @@ export async function getWeatherAdvisory(
 
     return response.json();
 }
+
+export interface ReportData {
+    analysis: any; // Replace 'any' with your analysis type
+    timestamp: string;
+    location?: {
+        latitude: number;
+        longitude: number;
+    };
+    notes?: string;
+}
+
+export async function saveReportToServer(reportData: ReportData) {
+    try {
+        const response = await fetch('/api/reports', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ...reportData,
+                savedAt: new Date().toISOString()
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.warn('Failed to save report to server:', errorData.error || 'Unknown error');
+            return { success: false, error: errorData.error || 'Failed to save report' };
+        }
+
+        return { success: true, message: 'Report saved successfully' };
+    } catch (error) {
+        console.warn('Error saving report to server:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to save report'
+        };
+    }
+}
