@@ -80,6 +80,7 @@ export interface ReportData {
         longitude: number;
     };
     notes?: string;
+    language?: string;
 }
 
 export async function saveReportToServer(reportData: ReportData) {
